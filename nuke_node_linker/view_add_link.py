@@ -1,11 +1,12 @@
+# Import built-in modules
 import sys
 
-
+# Import third-party modules
 from PySide2 import QtCore  # pylint: disable=import-error
 from PySide2 import QtGui  # pylint: disable=import-error
 from PySide2 import QtWidgets  # pylint: disable=import-error
 
-
+# Import local modules
 from nuke_node_linker import constants
 from nuke_node_linker import utils
 
@@ -48,12 +49,22 @@ class AddLink(QtWidgets.QWidget):
         self.color_bar.setMaximumHeight(20)
         self.color_bar.setStyleSheet("font: 17px")
 
-        self.dropdown = QtWidgets.QComboBox()
-        model = self.dropdown.model()
+        self.dropdown_type = QtWidgets.QComboBox()
+        model = self.dropdown_type.model()
 
-        for item in constants.KNOB_NAMES.keys():
-            combo_item = QtGui.QStandardItem(item)
-            model.appendRow(combo_item)
+        for index, item in enumerate(sorted(constants.KNOB_NAMES.keys())):
+            model.appendRow(QtGui.QStandardItem(item))
+            icon_file = utils.get_icon_path(item)
+            self.dropdown_type.setItemIcon(index, QtGui.QIcon(icon_file))
+
+        self.dropdown_category = QtWidgets.QComboBox()
+        model = self.dropdown_category.model()
+
+        for index, item in enumerate(sorted(constants.COLORS.keys())):
+            model.appendRow(QtGui.QStandardItem(item))
+            # self.dropdown_category.setItemData(index,
+            #                                    QtGui.QColor(*constants.COLORS[item]),
+            #                                    QtCore.Qt.BackgroundRole)
 
         self.link_name = QtWidgets.QLineEdit()
         self.link_name.setPlaceholderText('name')
@@ -68,7 +79,8 @@ class AddLink(QtWidgets.QWidget):
         category_layout = QtWidgets.QHBoxLayout()
         confirm_layout = QtWidgets.QHBoxLayout()
 
-        category_layout.addWidget(self.dropdown)
+        category_layout.addWidget(self.dropdown_type)
+        category_layout.addWidget(self.dropdown_category)
         category_layout.addWidget(self.link_name)
 
         confirm_layout.addWidget(self.cancel_button)
@@ -87,7 +99,8 @@ class AddLink(QtWidgets.QWidget):
         self.ok_button.clicked.connect(self.create_link)
 
     def create_link(self):
-        self.create.emit((self.dropdown.currentText(),
+        self.create.emit((self.dropdown_type.currentText(),
+                          self.dropdown_category.currentText(),
                           self.link_name.text(),
                           self.node))
         self.close()

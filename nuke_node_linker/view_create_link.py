@@ -1,13 +1,14 @@
-import os
+# Import built-in modules
 import sys
 
-
+# Import third-party modules
 from PySide2 import QtCore  # pylint: disable=import-error
 from PySide2 import QtGui  # pylint: disable=import-error
 from PySide2 import QtWidgets  # pylint: disable=import-error
 
-
-from nuke_node_linker.constants import WIDGET_COLORS
+# Import local modules
+from nuke_node_linker.constants import WIDGET_COLORS, COLORS
+from nuke_node_linker import utils
 
 
 def nonconsec_find(needle, haystack, anchored=False):
@@ -48,6 +49,7 @@ def nonconsec_find(needle, haystack, anchored=False):
 
 class UserLineInput(QtWidgets.QLineEdit):
     pressed_arrow = QtCore.Signal(str)
+    entered = QtCore.Signal()
     cancelled = QtCore.Signal()
 
     def event(self, event):
@@ -60,7 +62,7 @@ class UserLineInput(QtWidgets.QLineEdit):
 
         if is_keypress and event.key() == QtCore.Qt.Key_Tab:
             # Can't access tab key in keyPressedEvent
-            self.returnPressed.emit()
+            self.entered.emit()
             return True
 
         elif is_keypress and event.key() == QtCore.Qt.Key_Up:
@@ -99,18 +101,19 @@ class LinkModel(QtCore.QAbstractListModel):
     def update(self):
         filtertext = self._filter_text.lower()
 
-
         scored = []
-        all = self._all_bookmarks + self._all_links
-        for link in all:
 
+        both = self._all_bookmarks.copy()
+        both.update(self._all_links)
+        for link in both.keys():
             if nonconsec_find(filtertext, link.lower(), anchored=True):
                 if link in self._all_bookmarks:
                     type_ = 'Bookmark'
                 else:
                     type_ = 'Link'
                 scored.append({'text': link,
-                               'type': type_})
+                               'type': type_,
+                               'category': both[link][1]})
 
         self._items = sorted(scored)
         self.modelReset.emit()
@@ -123,19 +126,34 @@ class LinkModel(QtCore.QAbstractListModel):
         category = self._items[index.row()]['type']
 
         if role == QtCore.Qt.DisplayRole:
-            return self._items[index.row()]['text']
+            return '{} - {}'.format(self._items[index.row()]['text'],
+                                    self._items[index.row()]['category'])
 
         elif role == QtCore.Qt.BackgroundRole:
-            return QtGui.QColor.fromHsvF(*WIDGET_COLORS[category])
+            return QtGui.QColor.fromRgbF(*COLORS[self._items[index.row()]['category']])
 
         elif role == QtCore.Qt.DecorationRole:
-            icon_file = os.path.normpath(os.path.join(os.path.dirname(__file__),
-                                                        "icons",
-                                                        "{}.png".format(category)))
-            return QtGui.QPixmap(icon_file).scaled(QtCore.QSize(20, 20), QtCore.Qt.KeepAspectRatio)
+            icon_file = utils.get_icon_path(category)
+            return QtGui.QPixmap(icon_file).scaled(QtCore.QSize(25, 25), QtCore.Qt.KeepAspectRatio)
         else:
             # Ignore other roles
             return None
+
+    def getorig(self, selected):
+        # TODO: Is there a way to get this via data()? There's no
+        # Qt.DataRole or something (only DisplayRole)
+
+        if len(selected) > 0:
+            # Get first selected index
+            selected = selected[0]
+
+        else:
+            # Nothing selected, get first index
+            selected = self.index(0)
+
+        # TODO: Maybe check for IndexError?
+        selected_data = self._items[selected.row()]
+        return selected_data
 
 
 class CreateLink(QtWidgets.QWidget):
@@ -150,11 +168,14 @@ class CreateLink(QtWidgets.QWidget):
 
         self.build_widgets()
         self.build_layouts()
+        self.set_window_properties()
         self.set_up_signal()
 
     def set_window_properties(self):
-        self.setFixedSize(400, 150)
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.setFixedSize(300, 150)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
+                            QtCore.Qt.FramelessWindowHint)
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setWindowTitle('Add NodeLink')
 
     def build_widgets(self):
@@ -165,6 +186,7 @@ class CreateLink(QtWidgets.QWidget):
     def build_layouts(self):
         """Create and apply layouts."""
         main_layout = QtWidgets.QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(self.input)
         main_layout.addWidget(self.list_view)
 
@@ -172,6 +194,12 @@ class CreateLink(QtWidgets.QWidget):
 
     def set_up_signal(self):
         self.input.textChanged.connect(self.update)
+        self.input.entered.connect(lambda: self.create_item(self.list_view.currentIndex()))
+        self.input.returnPressed.connect(lambda: self.create_item(self.list_view.currentIndex()))
+        self.input.cancelled.connect(self.close)
+        self.input.pressed_arrow.connect(self.move_selection)
+
+        self.list_view.clicked.connect(self.create_item)
 
     def set_up_model(self, all_links, all_bookmarks):
         self.model = LinkModel(all_links=all_links, all_bookmarks=all_bookmarks)
@@ -180,8 +208,38 @@ class CreateLink(QtWidgets.QWidget):
     def update(self, text):
         """On text change, selects first item and updates filter text
         """
-        # self.list_view.setCurrentIndex(self.model.index(0))
+
+        self.list_view.setCurrentIndex(self.model.index(0))
         self.model.set_filter(text)
+
+    def move_selection(self, where):
+        if where not in ["first", "up", "down"]:
+            raise ValueError("where should be either 'first', 'up', 'down', not %r" % (
+                    where))
+
+        first = where == "first"
+        up = where == "up"
+        down = where == "down"
+
+        if first:
+            self.list_view.setCurrentIndex(self.things_model.index(0))
+            return
+
+        cur = self.list_view.currentIndex()
+        if up:
+            new = cur.row() - 1
+            if new < 0:
+                new = self.model.rowCount() - 1
+        elif down:
+            new = cur.row() + 1
+            count = self.model.rowCount()
+            if new > count-1:
+                new = 0
+
+        self.list_view.setCurrentIndex(self.model.index(new))
+
+    def create_item(self, item=None):
+        self.create.emit(self.model.getorig(self.list_view.selectedIndexes()))
 
     def keyPressEvent(self, event):  # pylint: disable=invalid-name
         """Route key press events and trigger actions accordingly.
