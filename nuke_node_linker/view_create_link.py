@@ -7,7 +7,7 @@ from PySide2 import QtGui  # pylint: disable=import-error
 from PySide2 import QtWidgets  # pylint: disable=import-error
 
 # Import local modules
-from nuke_node_linker.constants import WIDGET_COLORS, COLORS
+from nuke_node_linker.constants import COLORS
 from nuke_node_linker import utils
 
 
@@ -182,6 +182,7 @@ class CreateLink(QtWidgets.QWidget):
         """Build widgets for interface."""
         self.input = UserLineInput()
         self.list_view = QtWidgets.QListView()
+        self.list_view.setStyleSheet("background-color: transparent;");
 
     def build_layouts(self):
         """Create and apply layouts."""
@@ -240,6 +241,25 @@ class CreateLink(QtWidgets.QWidget):
 
     def create_item(self, item=None):
         self.create.emit(self.model.getorig(self.list_view.selectedIndexes()))
+
+    def under_cursor(self):
+        def clamp(val, mi, ma):
+            return max(min(val, ma), mi)
+
+        # Get cursor position, and screen dimensions on active screen
+        cursor = QtGui.QCursor().pos()
+        screen = QtWidgets.QDesktopWidget().screenGeometry(cursor)
+
+        # Get window position so cursor is just over text input
+        xpos = cursor.x() - (self.width()/2)
+        ypos = cursor.y() - 20
+
+        # Clamp window location to prevent it going offscreen
+        xpos = clamp(xpos, screen.left(), screen.right() - self.width())
+        ypos = clamp(ypos, screen.top(), screen.bottom() - (self.height()-20))
+
+        # Move window
+        self.move(xpos, ypos)
 
     def keyPressEvent(self, event):  # pylint: disable=invalid-name
         """Route key press events and trigger actions accordingly.

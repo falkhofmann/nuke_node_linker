@@ -6,6 +6,8 @@ import nukescripts
 from nuke_node_linker import constants
 from nuke_node_linker.constants import KNOB_NAMES, LINK_NODE_TYPE
 
+reload(constants)
+
 
 def get_node():
     """Get all selected nodes."""
@@ -41,6 +43,8 @@ def add_link_knob(node, type_, category, link_name):
         link_name (str): Additional user description.
 
     """
+    if not link_name:
+        return
     if not has_node_tab(node):
         add_node_link_tab(node)
 
@@ -94,10 +98,11 @@ def create_link_node(node_details, link_name):
 def get_tile_color(node, link_category):
 
     if not node['tile_color'].value():
-        red, green, blue = constants.COLORS[link_category]
+        red, green, blue, alpha = constants.COLORS[link_category]
         tile_color = int('%02x%02x%02x%02x' % (red*255,
                                                green*255,
-                                               blue*255, 1),
+                                               blue*255,
+                                               1),
                          16)
     else:
         tile_color = node['tile_color'].value()

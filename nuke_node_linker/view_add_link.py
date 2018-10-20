@@ -62,11 +62,11 @@ class AddLink(QtWidgets.QWidget):
 
         for index, item in enumerate(sorted(constants.COLORS.keys())):
             model.appendRow(QtGui.QStandardItem(item))
-            # self.dropdown_category.setItemData(index,
-            #                                    QtGui.QColor(*constants.COLORS[item]),
-            #                                    QtCore.Qt.BackgroundRole)
 
         self.link_name = QtWidgets.QLineEdit()
+        self.link_name.setValidator(QtGui.QRegExpValidator(
+            QtCore.QRegExp(constants.NAME_REGEX)))
+
         self.link_name.setPlaceholderText('name')
         self.cancel_button = Button('cancel')
         self.ok_button = Button('ok')

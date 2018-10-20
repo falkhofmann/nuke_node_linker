@@ -39,6 +39,7 @@ def start():
     global VIEW  # pylint: disable=global-statement
     VIEW = view_create_link.CreateLink()
     VIEW.raise_()
+    VIEW.under_cursor()
     VIEW.show()
 
     Controller(VIEW)
