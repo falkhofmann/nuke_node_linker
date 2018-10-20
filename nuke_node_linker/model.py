@@ -88,7 +88,7 @@ def create_link_node(node_details, link_name):
     tile_color = get_tile_color(node, link_category)
     link.knob('hide_input').setValue(True)
     link['tile_color'].setValue(tile_color)
-    link['label'].setValue('NodeLink: {}'.format(link_name))
+    link['label'].setValue('NodeLink\n{}: {}'.format(link_category, link_name))
 
     add_buttons(link)
 

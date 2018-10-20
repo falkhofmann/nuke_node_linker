@@ -126,7 +126,7 @@ class LinkModel(QtCore.QAbstractListModel):
         category = self._items[index.row()]['type']
 
         if role == QtCore.Qt.DisplayRole:
-            return '{} - {}'.format(self._items[index.row()]['text'],
+            return '{}             ({})'.format(self._items[index.row()]['text'],
                                     self._items[index.row()]['category'])
 
         elif role == QtCore.Qt.BackgroundRole:
