@@ -43,17 +43,3 @@ def start():
     VIEW.show()
 
     Controller(VIEW)
-
-
-def start_from_main():
-    app = QtWidgets.QApplication()
-    global VIEW  # pylint: disable=global-statement
-    VIEW = view_create_link.CreateLink()
-    VIEW.raise_()
-    VIEW.show()
-    Controller(VIEW)
-    app.exec_()
-
-
-if __name__ == '__main__':
-    start_from_main()

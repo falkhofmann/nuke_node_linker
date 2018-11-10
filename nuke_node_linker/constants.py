@@ -3,6 +3,7 @@ CATEGORIES = ['Bookmark', 'Link']
 TAB_NAME = 'NodeLinks'
 
 KNOB_NAMES = {'Link': 'node_link',
+              'Linked': 'linked_node',
               'Bookmark': 'node_bookmark'}
 
 LINK_NODE_TYPE = 'NoOp'
