@@ -1,6 +1,3 @@
-# Import built-in modules
-import sys
-
 # Import third-party modules
 from PySide2 import QtCore  # pylint: disable=import-error
 from PySide2 import QtGui  # pylint: disable=import-error
@@ -53,6 +50,8 @@ class AddLink(QtWidgets.QWidget):
         model = self.dropdown_type.model()
 
         for index, item in enumerate(sorted(constants.KNOB_NAMES.keys())):
+            if item == 'Linked':
+                continue
             model.appendRow(QtGui.QStandardItem(item))
             icon_file = utils.get_icon_path(item)
             self.dropdown_type.setItemIcon(index, QtGui.QIcon(icon_file))
@@ -114,15 +113,3 @@ class AddLink(QtWidgets.QWidget):
         """
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
-
-
-def start_from_main():
-    app = QtWidgets.QApplication(sys.argv)
-    global interface  # pylint: disable=global-statement
-    interface = AddLink('a')
-    interface.show()
-    app.exec_()
-
-
-if __name__ == '__main__':
-    start_from_main()

@@ -270,17 +270,3 @@ class CreateLink(QtWidgets.QWidget):
         """
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
-
-
-def start_from_main():
-    app = QtWidgets.QApplication(sys.argv)
-    global interface  # pylint: disable=global-statement
-    interface = CreateLink()
-    interface.set_up_model(all_links=['Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrott'],
-                           all_bookmarks=['Alfab', 'Bravob', 'Charlieb', 'Deltab', 'Echob', 'Foxtrottb'])
-    interface.show()
-    app.exec_()
-
-
-if __name__ == '__main__':
-    start_from_main()

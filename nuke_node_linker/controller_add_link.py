@@ -22,7 +22,6 @@ class Controller:
         self.view.create.connect(lambda link_details: self.create_link(link_details))
 
     def create_link(self, link_details):
-        print link_details
         type_, category, link_name, node = link_details
         sanity = model.sanity_check(node, constants.KNOB_NAMES[type_])
         if not sanity:
@@ -42,17 +41,3 @@ def start():
     VIEW.show()
 
     Controller(VIEW)
-
-
-def start_from_main():
-    app = QtWidgets.QApplication()
-    global VIEW  # pylint: disable=global-statement
-    VIEW = view_add_link.AddLink([])
-    VIEW.raise_()
-    VIEW.show()
-    Controller(VIEW)
-    app.exec_()
-
-
-if __name__ == '__main__':
-    start_from_main()

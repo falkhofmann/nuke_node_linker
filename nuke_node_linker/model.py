@@ -3,10 +3,8 @@ import nuke
 import nukescripts
 
 # Import local modules
-from nuke_node_linker import constants
-from nuke_node_linker.constants import KNOB_NAMES, LINK_NODE_TYPE
 
-reload(constants)
+from nuke_node_linker.constants import COLORS, KNOB_NAMES, LINK_NODE_TYPE, TAB_NAME
 
 
 def get_node():
@@ -25,7 +23,6 @@ def get_all_linked_nodes(category):
 
     """
     return {node[KNOB_NAMES[category]].value(): (node, node[KNOB_NAMES[category]].label()) for node in nuke.allNodes() if KNOB_NAMES[category] in node.knobs()}
-    # return [node for node in nuke.allNodes() if KNOB_NAMES[category] in node.knobs()]
 
 
 def sanity_check(node, category):
@@ -61,14 +58,20 @@ def has_node_tab(node):
         bool: True if tab exists, otherwise false.
 
     """
-    if constants.TAB_NAME in node.knobs():
+    if TAB_NAME in node.knobs():
         return True
     else:
         return False
 
 
 def add_node_link_tab(node):
-    node.addKnob(nuke.Tab_Knob(constants.TAB_NAME))
+    """Add custom tab knob to node.
+
+    Args:
+        node (nuke.Node): Node to add link knob to.
+
+    """
+    node.addKnob(nuke.Tab_Knob(TAB_NAME))
 
 
 def create_link_node(node_details, link_name):
@@ -91,14 +94,39 @@ def create_link_node(node_details, link_name):
     link['label'].setValue('NodeLink\n{}: {}'.format(link_category, link_name))
 
     add_buttons(link)
+    add_linked_node_details(link, link_category, link_name)
 
     link.setInput(0, node)
 
 
-def get_tile_color(node, link_category):
+def add_linked_node_details(node, link_category, link_name):
+    """Add custom knob containing link details.
 
+    Args:
+        node (nuke.Node): Linked Node to add information to.
+        link_category (str): Category of link.
+        link_name (str): Link name.
+
+    """
+    knob_name = KNOB_NAMES['Linked']
+    knob = nuke.Text_Knob(knob_name, link_category, link_name)
+    knob.setVisible(False)
+    node.addKnob(knob)
+
+
+def get_tile_color(node, link_category):
+    """Retrieve value of tile_color knob converted into hexadecimal.
+
+    Args:
+        node (nuke.Node): Node to get the color from.
+        link_category (str): Category of Link.
+
+    Returns:
+        Color as hexadecimal values.
+
+    """
     if not node['tile_color'].value():
-        red, green, blue, alpha = constants.COLORS[link_category]
+        red, green, blue, alpha = COLORS[link_category]
         tile_color = int('%02x%02x%02x%02x' % (red*255,
                                                green*255,
                                                blue*255,
@@ -111,6 +139,12 @@ def get_tile_color(node, link_category):
 
 
 def add_buttons(link):
+    """"Add custom buttons to given node.
+
+    Args:
+        link (nuke.Node): Node to add custom knobs.
+
+    """
     jump_to_input_node = ('from nuke_node_linker import model;'
                           'model.jump_to_node(nuke.thisNode().input(0))')
 
@@ -138,12 +172,22 @@ def add_buttons(link):
 
 
 def jump_to_node(node):
+    """Change DAG posotion to nodes X and Y position.
 
+    Args:
+        node (nuke.Node): Node to jump to.
+
+    """
     nuke.zoom(2, [node.xpos(), node.ypos()])
 
 
 def duplicate_link(node):
+    """Copy and paste an already created link.
 
+    Args:
+        node (nuke.Node): Node to copy.
+
+    """
     selection = nuke.selectedNodes()
     nukescripts.clear_selection_recursive()
     node.setSelected(True)
@@ -155,3 +199,16 @@ def duplicate_link(node):
     for node_ in selection:
         node_.setSelected(True)
 
+
+def reconnect_links():
+    """Connect inputs based on knob values. """
+    links = get_all_linked_nodes('Link')
+    for node in nuke.selectedNodes():
+        if sanity_check(node, KNOB_NAMES['Linked']):
+            return
+        knob = node[KNOB_NAMES['Linked']]
+        link_category = knob.label()
+        link_name = knob.value()
+
+        if link_name in links and links[link_name][1] == link_category:
+            node.setInput(0, links[link_name][0])
