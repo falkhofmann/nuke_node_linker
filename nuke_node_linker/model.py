@@ -1,3 +1,5 @@
+"""Model for link and bookmark creation."""
+
 # Import third-party modules
 import nuke
 import nukescripts

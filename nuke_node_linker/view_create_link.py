@@ -1,5 +1,10 @@
-# Import built-in modules
-import sys
+"""View of widget.
+
+Based on Ben Dickson's TabTabTab
+
+http://www.nukepedia.com/python/ui/tabtabtab
+
+"""
 
 # Import third-party modules
 from PySide2 import QtCore  # pylint: disable=import-error
@@ -261,7 +266,7 @@ class CreateLink(QtWidgets.QWidget):
         # Move window
         self.move(xpos, ypos)
 
-    def keyPressEvent(self, event):  # pylint: disable=invalid-name
+    def keyPressEvent(self, event):
         """Route key press events and trigger actions accordingly.
 
         Args:

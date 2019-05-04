@@ -1,12 +1,8 @@
-# Import third-party modules
-from PySide2 import QtWidgets
+"""Controller to connect between view and model."""
 
 # Import local modules
-from nuke_node_linker import view_create_link
 from nuke_node_linker import model
-
-reload(view_create_link)
-reload(model)
+from nuke_node_linker import view_create_link
 
 
 class Controller:
@@ -21,10 +17,18 @@ class Controller:
         self.set_up_signals()
 
     def set_up_signals(self):
+        """Connect signals to actions."""
         self.view.create.connect(lambda x: self.create_item(x))
 
     def create_item(self, item):
+        """Create link or of jump to bookmark.
 
+        Args:
+            item:
+
+        Returns:
+
+        """
         if item['type'] == 'Bookmark':
             model.jump_to_node(self.bookmarks[item['text']][0])
 
