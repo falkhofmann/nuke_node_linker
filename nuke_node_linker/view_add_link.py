@@ -1,3 +1,5 @@
+"""View for add link option."""
+
 # Import third-party modules
 from PySide2 import QtCore  # pylint: disable=import-error
 from PySide2 import QtGui  # pylint: disable=import-error

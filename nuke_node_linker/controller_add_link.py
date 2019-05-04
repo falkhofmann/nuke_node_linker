@@ -1,14 +1,9 @@
-# Import third-party modules
-from PySide2 import QtWidgets
+"""Controller to connect between view and model."""
 
 # Import local modules
-from nuke_node_linker import view_add_link
-from nuke_node_linker import model as model
-
 from nuke_node_linker import constants
-
-reload(view_add_link)
-reload(model)
+from nuke_node_linker import model
+from nuke_node_linker import view_add_link
 
 
 class Controller:
@@ -19,9 +14,16 @@ class Controller:
         self.set_up_signals()
 
     def set_up_signals(self):
+        """Connect signals to actions."""
         self.view.create.connect(lambda link_details: self.create_link(link_details))
 
     def create_link(self, link_details):
+        """Create links based on given details and node.
+
+        Args:
+            link_details (tuple): Main type, Category, link name, node to create links from.
+
+        """
         type_, category, link_name, node = link_details
         sanity = model.sanity_check(node, constants.KNOB_NAMES[type_])
         if not sanity:
@@ -35,7 +37,7 @@ def start():
     if not node:
         return
 
-    global VIEW  # pylint: disable=global-statement
+    global VIEW
     VIEW = view_add_link.AddLink(node)
     VIEW.raise_()
     VIEW.show()
