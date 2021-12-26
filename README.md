@@ -1,3 +1,12 @@
+
+Usage
+-----
+In the time where there have been a lot of hidden input tools are floating around, I build up my own since each of them were missing feature I would like to have as well as had bigger performance impact.
+
+To see the tool in action, check out the [demo](https://vimeo.com/301644105) on vimeo.
+
+Install
+-------
 Make sure outer nuke_node_linker folder is your nuke nuke.pluginPath
 Add some variation of the following lines to your menu.py.
 
